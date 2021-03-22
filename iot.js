@@ -1,16 +1,8 @@
-//iot side
+// iot side
 // don't forget to install the following modules
-
-var keythereum = require("keythereum");
-const secp256k1 = require('secp256k1')
 const createKeccakHash = require('keccak')
 var net = require('net');
-const express = require('express');
-const bodyParser = require('body-parser');
 const LoginContract = require('./login_contract.js');
-const jwt = require('jsonwebtoken');
-const cuid = require('cuid');
-const cors = require('cors');
 var Web3 = require('web3');
 var web3 = new Web3();
 
@@ -18,16 +10,14 @@ var HOST = '<IOT ip address>';
 var event_happened = false;
 var PORT = 9090;
 var message;
-var sign;
 var cnt = 0;
 var token;
 var address;
 var publickey = new Buffer(1)
 
-//////////////////wait for event
+// wait for event
 web3.setProvider(new web3.providers.HttpProvider('http://127.0.0.1:7545'));
 const loginContract = LoginContract.at(process.env.LOGIN_CONTRACT_ADDRESS || '<smart contract eth address>');
-
 const loginAttempt = loginContract.LoginAttempt();
 
 loginAttempt.watch((error, event) => {
@@ -35,8 +25,6 @@ loginAttempt.watch((error, event) => {
 		console.log(error);
 		return;
 	}
-
-
 	event_happened = true;
 	address = event.args.sender.toLowerCase();
 	token = event.args.token;
@@ -44,20 +32,12 @@ loginAttempt.watch((error, event) => {
 	console.log("\x1b[0m", "\n");
 	console.log("Sender Address: " + address);
 	console.log("Authentication Token: " + token);
-
-
 });
 
 // listen to input
 net.createServer(function (sock) {
-
-
 	console.log('CONNECTED Client: ' + sock.remoteAddress + ':' + sock.remotePort);
-
-
-
 	sock.on('data', function (data) {
-
 		if (cnt == 0) {
 			message = data.toString();
 			cnt++;
@@ -70,7 +50,6 @@ net.createServer(function (sock) {
 			sign = data.toString();
 			cnt++;
 		}
-
 		var resM = message.split(",")
 		if (cnt === 3 && resM[0] === token && resM[1] == sock.remoteAddress.toString()) {
 			createKeccakHash('keccak256').digest().toString('hex');
@@ -83,16 +62,11 @@ net.createServer(function (sock) {
 			}
 		}
 		else { sock.write('!'); }
-
-
 	});
 
 	// Add a 'close' event handler to this instance of socket
 	sock.on('close', function (data) {
 		console.log('CLOSED: ' + sock.remoteAddress + ' ' + sock.remotePort);
 	});
-
 }).listen(PORT, HOST);
-
 console.log('Device listening on ' + HOST + ':' + PORT);
-
