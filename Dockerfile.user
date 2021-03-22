@@ -1,0 +1,17 @@
+FROM node:lts-buster-slim
+
+RUN npm config set registry https://registry.npm.taobao.org/ \
+    && npm install web3 keythereum secp256k1 keccak net \
+    && npm cache clean
+
+WORKDIR /home
+COPY . .
+
+ENV USER_IP="0.0.0.0" \
+    IOT_IP="0.0.0.0" \
+    IOT_PORT=9090 \
+    PRIVATE_KEY="be2e441747d13930d5115b238814a329b57e23d645dccded46f95573fb6d4dd9" \
+    USER_ADDRESS="0x7f13C646a2B8FFa87CB25BBFe8E447Da06e5D057" \
+    LOGIN_CONTRACT_ADDRESS="0xc01aaa98c2Abffe3b5bb5aA5Cfe95b534910F47d"
+
+CMD [ "node", "login_contract.js" ]
